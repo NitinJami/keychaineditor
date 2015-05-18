@@ -267,9 +267,12 @@ void prepareJsonOutput(NSDictionary *results, NSString *find) {
         [innerJSON setObject:[NSString stringWithFormat:@"%@", \
                                 [eachItemFromResults objectForKey:(__bridge id)kSecAttrCreationDate]] \
                         forKey:@"Creation Time"];
-        
-        [innerJSON setObject:[[eachItemFromResults objectForKey:(__bridge id)kSecValueData] \
+        if([eachItemFromResults objectForKey:(__bridge id)kSecValueData] == nil) {
+         [innerJSON setObject:@"" forKey:@"Data"];
+        } else {
+         [innerJSON setObject:[[eachItemFromResults objectForKey:(__bridge id)kSecValueData] \
                                 base64EncodedStringWithOptions:0] forKey:@"Data"];
+        }
         
         [innerJSON setObject:checkUserPresence((__bridge SecAccessControlRef) \
                         ([eachItemFromResults objectForKey:(__bridge id)(kSecAttrAccessControl)])) forKey:@"UserPresence"];
