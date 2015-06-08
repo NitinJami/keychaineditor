@@ -10,7 +10,7 @@
 #import <Security/Security.h>
 
 /*
- Undocumented functions that are used by the keychain. I need declare these functions
+ Undocumented functions that are used by the keychain. I need to declare these functions
  in order to use in my tool. Not all three functions are useful now except for 
  SecAccessControlGetConstraints() which returns a Dict containing a value for 
  UserPresence. I will leave the other two functions for future use.
@@ -24,8 +24,8 @@ CFDataRef SecAccessControlCopyData(SecAccessControlRef access_control);
 /*
  The flag will help in determining, if idb has called or it was command line invocation.
  The primary difference for idb version is kSecValueData needs to be in base64, whether 
- it is editing and item or dumping the keychain. For a command line invocation, for the 
- sake of user expierence I would go with raw strings.
+ it is editing an item or dumping the keychain. For a command line invocation, for the
+ sake of user expierence I would go with strings.
  TODO: I haven't implemented this yet.
  */
 unsigned int IF_IDB = 0;
@@ -100,8 +100,6 @@ OSStatus osstatusToHumanReadableString(OSStatus status) {
 /*
  Helper function that converts pdmn values to Accessible constants
  and stringify the constant.
- 
- TODO: Need to support the new constant "WhenPasscodeSet".
  */
 
 NSString *mapKeychainConstants(NSString *pdmn) {
@@ -148,7 +146,7 @@ NSString* determineTypeAndReturnNSString(id accountValue) {
  A UserPresence further requires a form of user authentication, i.e. either 
  via TouchID or Device Passcode.
  
- TODO: I will develop this as and when updates thier functionality. Right 
+ TODO: I will develop this as and when Apple updates their functionality. Right
  now it's just whether a UserPresence is required or not.
  */
 NSString* checkUserPresence(SecAccessControlRef sacObj) {
@@ -174,6 +172,21 @@ NSString* checkUserPresence(SecAccessControlRef sacObj) {
     }
     
     return @"No";
+}
+
+
+/*
+ Helper function to deal with items having no data. The return value for this case is NULL.
+ And NULL doesn't go well with JSON/Dictionary. https://github.com/NitinJami/keychaineditor/issues/1
+ Just return a "null" string for no data and base64 encode it for idb to parse it properly.
+ */
+NSString* checkForNoDataValue(NSData* dataValue) {
+    
+    if (dataValue != NULL) {
+        return [dataValue base64EncodedStringWithOptions:0];
+    }
+    
+    return [[@"null" dataUsingEncoding:NSUTF8StringEncoding] base64EncodedStringWithOptions:0];
 }
 
 
@@ -268,8 +281,7 @@ void prepareJsonOutput(NSDictionary *results, NSString *find) {
                                 [eachItemFromResults objectForKey:(__bridge id)kSecAttrCreationDate]] \
                         forKey:@"Creation Time"];
         
-        [innerJSON setObject:[[eachItemFromResults objectForKey:(__bridge id)kSecValueData] \
-                                base64EncodedStringWithOptions:0] forKey:@"Data"];
+        [innerJSON setObject:checkForNoDataValue([eachItemFromResults objectForKey:(__bridge id)kSecValueData]) forKey:@"Data"];
         
         [innerJSON setObject:checkUserPresence((__bridge SecAccessControlRef) \
                         ([eachItemFromResults objectForKey:(__bridge id)(kSecAttrAccessControl)])) forKey:@"UserPresence"];
@@ -507,12 +519,12 @@ void additem() {
     [attrbs setObject:(__bridge id)(kSecClassGenericPassword) forKey:(__bridge id<NSCopying>)(kSecClass)];
     [attrbs setObject:@"testaccount" forKey:(__bridge id<NSCopying>)(kSecAttrAccount)];
     [attrbs setObject:@"testservice" forKey:(__bridge id<NSCopying>)(kSecAttrService)];
-    //[attrbs setObject:(__bridge id)(kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly) forKey:(__bridge id<NSCopying>)(kSecAttrAccessible)];
-    [attrbs setObject:[@"testing" dataUsingEncoding:NSUTF8StringEncoding] forKey:(__bridge id<NSCopying>)(kSecValueData)];
+    [attrbs setObject:(__bridge id)(kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly) forKey:(__bridge id<NSCopying>)(kSecAttrAccessible)];
+    //[attrbs setObject:[@"testing" dataUsingEncoding:NSUTF8StringEncoding] forKey:(__bridge id<NSCopying>)(kSecValueData)];
     
-    SecAccessControlRef sac = SecAccessControlCreateWithFlags(kCFAllocatorDefault, kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly, kSecAccessControlUserPresence, nil);
+    //SecAccessControlRef sac = SecAccessControlCreateWithFlags(kCFAllocatorDefault, kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly, kSecAccessControlUserPresence, nil);
     
-    [attrbs setObject:(__bridge id)(sac) forKey:(__bridge id<NSCopying>)(kSecAttrAccessControl)];
+    //[attrbs setObject:(__bridge id)(sac) forKey:(__bridge id<NSCopying>)(kSecAttrAccessControl)];
     
     OSStatus status = SecItemAdd((__bridge CFDictionaryRef)(attrbs), nil);
     
