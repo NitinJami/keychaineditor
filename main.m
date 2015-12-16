@@ -269,10 +269,10 @@ void prepareJsonOutput(NSDictionary *results, NSString *find) {
         [innerJSON setObject:[NSString stringWithFormat:@"%@", \
                                 [eachItemFromResults objectForKey:(__bridge id)kSecAttrAccessGroup]] \
                         forKey:@"EntitlementGroup"];
-        
+
         [innerJSON setObject:mapKeychainConstants([eachItemFromResults \
                                                      objectForKey:(__bridge id)kSecAttrAccessible]) forKey:@"Protection"];
-        
+
         [innerJSON setObject:[NSString stringWithFormat:@"%@", \
                                 [eachItemFromResults objectForKey:(__bridge id)kSecAttrModificationDate]] \
                         forKey:@"Modified Time"];
@@ -283,10 +283,12 @@ void prepareJsonOutput(NSDictionary *results, NSString *find) {
         
         [innerJSON setObject:checkForNoDataValue([eachItemFromResults objectForKey:(__bridge id)kSecValueData]) forKey:@"Data"];
         
-        [innerJSON setObject:checkUserPresence((__bridge SecAccessControlRef) \
-                        ([eachItemFromResults objectForKey:(__bridge id)(kSecAttrAccessControl)])) forKey:@"UserPresence"];
+        if([eachItemFromResults objectForKey:(__bridge id)(kSecAttrAccessControl)]) {
+            [innerJSON setObject: checkUserPresence((__bridge SecAccessControlRef) \
+                                                    ([eachItemFromResults objectForKey:(__bridge id)(kSecAttrAccessControl)])) forKey:@"UserPresence"];
+        }
         
-        [parentJSON setObject:innerJSON forKey:[NSString stringWithFormat:@"%lu", (unsigned long)++index]];
+       [parentJSON setObject:innerJSON forKey:[NSString stringWithFormat:@"%lu", (unsigned long)++index]];
     }
     
     /*
@@ -600,7 +602,9 @@ int main(int argc, char *argv[]) {
         
         if ([action isEqualToString:@"dump"] || [action isEqualToString:@"min-dump"]) {
             
+            
             if (errSecSuccess != dumpKeychain(action, find)) {
+                
                 return EXIT_FAILURE;
             }
         }
