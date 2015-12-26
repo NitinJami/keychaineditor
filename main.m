@@ -37,8 +37,8 @@ unsigned int IF_IDB = 0;
 
 void printUsage() {
     
-    fprintf(stdout, "\n\e[4;30mUsage:\e[0;31m ./keychaineditor commands \
-          \n\e[4;30mCommands can be:\e[0;31m\
+    fprintf(stdout, "\n\e[0;0mUsage:\e[0;31m ./keychaineditor commands \
+          \n\e[0;0mCommands can be:\e[0;31m\
           \n\t--help:    Prints the usage.\
           \n\t--action:  Can be either min-dump, dump, edit, delete.\
           \n\t--find:    uses 'CONTAINS' to find strings from the dump.\
@@ -50,13 +50,13 @@ void printUsage() {
           \n\e[0;32mNote: If there is no account name, pass a '' string.\
           \n\e[0;32mNote: --find is an optional command for dump. It search from\
           \n\e[0;32m{Account, Service, EntitlementGroup, Protection}.\
-          \n\e[4;30mExamples:\e[0;31m\
+          \n\e[4;0mExamples:\e[0;31m\
           \n\t./keychaineditor --action dump --find XXX\
           \n\tOr\
           \n\t./keychaineditor --action delete --account XXX --service XXX\
           \n\tOr\
           \n\t./keychaineditor --action edit --account XXX --service XXX --data XXX\
-          \e[0;30m\n\n");
+          \e[0;0m\n\n");
     
     return;
     
@@ -75,21 +75,21 @@ OSStatus osstatusToHumanReadableString(OSStatus status) {
     
     switch (status) {
         case errSecSuccess:
-            fprintf(stdout, "\e[0;32mOperation successfully completed.\e[0;30m\n");
+            fprintf(stdout, "\e[0;32mOperation successfully completed.\e[0;0m\n");
             break;
         case errSecItemNotFound:
-            fprintf(stderr, "\e[0;31mThe specified item could not be found in the keychain.\e[0;30m\n");
+            fprintf(stderr, "\e[0;31mThe specified item could not be found in the keychain.\e[0;0m\n");
             break;
         case errSecAuthFailed:
-            fprintf(stderr, "\e[0;31mDid you turn off the passcode on device? The item is no longer available.\e[0;30m\n");
-            fprintf(stderr, "\e[0;31mIf that is not the case, UserPresence is required. Check your device for the prompt.\e[0;30m\n");
+            fprintf(stderr, "\e[0;31mDid you turn off the passcode on device? The item is no longer available.\e[0;0m\n");
+            fprintf(stderr, "\e[0;31mIf that is not the case, UserPresence is required. Check your device for the prompt.\e[0;0m\n");
             break;
         case -34018:
-            fprintf(stderr, "\e[0;31mError: Client has neither application-identifier nor keychain-access-groups entitlements. Please refer README for further instructions.\e[0;30m\n");
+            fprintf(stderr, "\e[0;31mError: Client has neither application-identifier nor keychain-access-groups entitlements. Please refer README for further instructions.\e[0;0m\n");
             break;
             
         default:
-            fprintf(stderr, "\e[0;31mUnhandled Error: Please contact developer to report this error. Error code: %d\e[0;30m\n", (int)status);
+            fprintf(stderr, "\e[0;31mUnhandled Error: Please contact developer to report this error. Error code: %d\e[0;0m\n", (int)status);
             break;
     }
     
@@ -316,7 +316,7 @@ void prepareJsonOutput(NSDictionary *results, NSString *find) {
         fprintf(stdout, "%s\n", [[[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding] UTF8String]);
     }
     else {
-        fprintf(stderr, "\n\e[0;31mInternal error when preparing JSON output. Error: %s\e[0;30m\n", [[error localizedDescription] UTF8String]);
+        fprintf(stderr, "\n\e[0;31mInternal error when preparing JSON output. Error: %s\e[0;0m\n", [[error localizedDescription] UTF8String]);
     }
 }
 
@@ -332,7 +332,7 @@ void prepareMinimumOutput(NSDictionary *results) {
     NSString *account = [[NSString alloc] init];
     NSString *service = [[NSString alloc] init];
     
-    fprintf(stdout, "\e[0;31mWarning: The names are truncated to max width of 35 charaters. Please use this dump as a reference, and use --find to get full details.\n\e[0;30m");
+    fprintf(stdout, "\e[0;31mWarning: The names are truncated to max width of 35 charaters. Please use this dump as a reference, and use --find to get full details.\n\e[0;0m");
     
     // Prettify the output.
     fprintf(stdout, "Account%28s | Service\n", "");
@@ -555,7 +555,7 @@ int main(int argc, char *argv[]) {
          */
         
         if (![[NSString stringWithFormat:@"%s", argv[1]] isEqualToString:@"--action"]) {
-            fprintf(stderr, "\e[0;31mInvalid command passed as first argument. Please use --help to get usage information.\e[0;30m");
+            fprintf(stderr, "\e[0;31mInvalid command passed as first argument. Please use --help to get usage information.\e[0;0m");
             return EXIT_FAILURE;
         }
         
@@ -589,7 +589,7 @@ int main(int argc, char *argv[]) {
          */
         
         if (![@[@"min-dump", @"dump", @"edit", @"delete"] containsObject:action]) {
-            fprintf(stderr, "\e[0;31mInvalid action passed. Please use --help to get usage information.\n\e[0;30m");
+            fprintf(stderr, "\e[0;31mInvalid action passed. Please use --help to get usage information.\n\e[0;0m");
             return EXIT_FAILURE;
         }
         
@@ -611,7 +611,7 @@ int main(int argc, char *argv[]) {
              */
             
             if ( (acct == nil) || (srvc == nil) || (data == nil) ) {
-                fprintf(stderr, "\e[0;31mEdit requires account, service and data. Please use --help to get usage information.\n\e[0;30m");
+                fprintf(stderr, "\e[0;31mEdit requires account, service and data. Please use --help to get usage information.\n\e[0;0m");
                 return EXIT_FAILURE;
             }
             
@@ -627,7 +627,7 @@ int main(int argc, char *argv[]) {
             NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:data options:NSDataBase64DecodingIgnoreUnknownCharacters];
             
             if (decodedData == nil) {
-                fprintf(stderr, "\e[0;31mData only accepts base64 strings. Please use --help to get usage information.\n\e[0;30m");
+                fprintf(stderr, "\e[0;31mData only accepts base64 strings. Please use --help to get usage information.\n\e[0;0m");
                 return EXIT_FAILURE;
             }
             
@@ -642,7 +642,7 @@ int main(int argc, char *argv[]) {
              */
             
             if ( (acct == nil) || (srvc == nil) ) {
-                fprintf(stderr, "\e[0;31mDelete requires account, service. Please use --help to get usage information.\n\e[0;30m");
+                fprintf(stderr, "\e[0;31mDelete requires account, service. Please use --help to get usage information.\n\e[0;0m");
                 return EXIT_FAILURE;
             }
             
