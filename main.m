@@ -282,9 +282,11 @@ void prepareJsonOutput(NSDictionary *results, NSString *find) {
                         forKey:@"Creation Time"];
         
         [innerJSON setObject:checkForNoDataValue([eachItemFromResults objectForKey:(__bridge id)kSecValueData]) forKey:@"Data"];
-        
-        [innerJSON setObject:checkUserPresence((__bridge SecAccessControlRef) \
-                        ([eachItemFromResults objectForKey:(__bridge id)(kSecAttrAccessControl)])) forKey:@"UserPresence"];
+
+        if([eachItemFromResults objectForKey:(__bridge id)(kSecAttrAccessControl)]) {
+            [innerJSON setObject: checkUserPresence((__bridge SecAccessControlRef) \
+                                                    ([eachItemFromResults objectForKey:(__bridge id)(kSecAttrAccessControl)])) forKey:@"UserPresence"];
+        }
         
         [parentJSON setObject:innerJSON forKey:[NSString stringWithFormat:@"%lu", (unsigned long)++index]];
     }
