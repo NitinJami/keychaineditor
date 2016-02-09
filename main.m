@@ -17,9 +17,14 @@
  
  https://opensource.apple.com/source/Security/Security-57031.1.35/Security/sec/Security/SecItem.c
  */
+
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 80000
+
 CFDictionaryRef SecAccessControlGetConstraints(SecAccessControlRef access_control);
 CFTypeRef SecAccessControlGetProtection(SecAccessControlRef access_control);
 CFDataRef SecAccessControlCopyData(SecAccessControlRef access_control);
+
+#endif
 
 /*
  The flag will help in determining, if idb has called or it was command line invocation.
@@ -37,8 +42,8 @@ unsigned int IF_IDB = 0;
 
 void printUsage() {
     
-    fprintf(stdout, "\n\e[0;0mUsage:\e[0;31m ./keychaineditor commands \
-          \n\e[0;0mCommands can be:\e[0;31m\
+    fprintf(stdout, "\n\e[4;30mUsage:\e[0;31m ./keychaineditor commands \
+          \n\e[4;30mCommands can be:\e[0;31m\
           \n\t--help:    Prints the usage.\
           \n\t--action:  Can be either min-dump, dump, edit, delete.\
           \n\t--find:    uses 'CONTAINS' to find strings from the dump.\
@@ -50,13 +55,13 @@ void printUsage() {
           \n\e[0;32mNote: If there is no account name, pass a '' string.\
           \n\e[0;32mNote: --find is an optional command for dump. It search from\
           \n\e[0;32m{Account, Service, EntitlementGroup, Protection}.\
-          \n\e[4;0mExamples:\e[0;31m\
+          \n\e[4;30mExamples:\e[0;31m\
           \n\t./keychaineditor --action dump --find XXX\
           \n\tOr\
           \n\t./keychaineditor --action delete --account XXX --service XXX\
           \n\tOr\
           \n\t./keychaineditor --action edit --account XXX --service XXX --data XXX\
-          \e[0;0m\n\n");
+          \e[0;30m\n\n");
     
     return;
     
@@ -75,21 +80,24 @@ OSStatus osstatusToHumanReadableString(OSStatus status) {
     
     switch (status) {
         case errSecSuccess:
-            fprintf(stdout, "\e[0;32mOperation successfully completed.\e[0;0m\n");
+            fprintf(stdout, "\e[0;32mOperation successfully completed.\e[0;30m\n");
             break;
         case errSecItemNotFound:
-            fprintf(stderr, "\e[0;31mThe specified item could not be found in the keychain.\e[0;0m\n");
+            fprintf(stderr, "\e[0;31mThe specified item could not be found in the keychain.\e[0;30m\n");
             break;
         case errSecAuthFailed:
-            fprintf(stderr, "\e[0;31mDid you turn off the passcode on device? The item is no longer available.\e[0;0m\n");
-            fprintf(stderr, "\e[0;31mIf that is not the case, UserPresence is required. Check your device for the prompt.\e[0;0m\n");
+            fprintf(stderr, "\e[0;31mDid you turn off the passcode on device? The item is no longer available.\e[0;30m\n");
+            fprintf(stderr, "\e[0;31mIf that is not the case, UserPresence is required. Check your device for the prompt.\e[0;30m\n");
+            break;
+        case errSecInteractionNotAllowed:
+            fprintf(stderr, "\e[0;31mDevice Locked. Cannot dump WhenUnlocked or WhenPasscodeSet items.\e[0;30m\n");
             break;
         case -34018:
-            fprintf(stderr, "\e[0;31mError: Client has neither application-identifier nor keychain-access-groups entitlements. Please refer README for further instructions.\e[0;0m\n");
+            fprintf(stderr, "\e[0;31mError: Client has neither application-identifier nor keychain-access-groups entitlements. Please refer README for further instructions.\e[0;30m\n");
             break;
             
         default:
-            fprintf(stderr, "\e[0;31mUnhandled Error: Please contact developer to report this error. Error code: %d\e[0;0m\n", (int)status);
+            fprintf(stderr, "\e[0;31mUnhandled Error: Please contact developer to report this error. Error code: %d\e[0;30m\n", (int)status);
             break;
     }
     
@@ -149,6 +157,9 @@ NSString* determineTypeAndReturnNSString(id accountValue) {
  TODO: I will develop this as and when Apple updates their functionality. Right
  now it's just whether a UserPresence is required or not.
  */
+
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 80000
+
 NSString* checkUserPresence(SecAccessControlRef sacObj) {
     
     /*
@@ -174,6 +185,7 @@ NSString* checkUserPresence(SecAccessControlRef sacObj) {
     return @"No";
 }
 
+#endif
 
 /*
  Helper function to deal with items having no data. The return value for this case is NULL.
@@ -221,7 +233,7 @@ NSMutableDictionary* limitOutputFromSearchQuery(NSMutableDictionary *dumpedDict,
  a dictionary of results.
  */
 
-void prepareJsonOutput(NSDictionary *results, NSString *find) {
+void prepareJsonOutput(NSArray *results, NSString *find) {
     
     /*
      The output will be in JSON style for other applications to easily parse it.
@@ -282,11 +294,13 @@ void prepareJsonOutput(NSDictionary *results, NSString *find) {
                         forKey:@"Creation Time"];
         
         [innerJSON setObject:checkForNoDataValue([eachItemFromResults objectForKey:(__bridge id)kSecValueData]) forKey:@"Data"];
-
-        if([eachItemFromResults objectForKey:(__bridge id)(kSecAttrAccessControl)]) {
-            [innerJSON setObject: checkUserPresence((__bridge SecAccessControlRef) \
-                                                    ([eachItemFromResults objectForKey:(__bridge id)(kSecAttrAccessControl)])) forKey:@"UserPresence"];
-        }
+        
+        #if __IPHONE_OS_VERSION_MIN_REQUIRED >= 80000
+            [innerJSON setObject:checkUserPresence((__bridge SecAccessControlRef) \
+                        ([eachItemFromResults objectForKey:(__bridge id)(kSecAttrAccessControl)])) forKey:@"UserPresence"];
+        #else
+            [innerJSON setObject:@"NA" forKey:@"UserPresence"];
+        #endif
         
         [parentJSON setObject:innerJSON forKey:[NSString stringWithFormat:@"%lu", (unsigned long)++index]];
     }
@@ -318,7 +332,7 @@ void prepareJsonOutput(NSDictionary *results, NSString *find) {
         fprintf(stdout, "%s\n", [[[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding] UTF8String]);
     }
     else {
-        fprintf(stderr, "\n\e[0;31mInternal error when preparing JSON output. Error: %s\e[0;0m\n", [[error localizedDescription] UTF8String]);
+        fprintf(stderr, "\n\e[0;31mInternal error when preparing JSON output. Error: %s\e[0;30m\n", [[error localizedDescription] UTF8String]);
     }
 }
 
@@ -328,13 +342,13 @@ void prepareJsonOutput(NSDictionary *results, NSString *find) {
  This would be Account, Service and Entitlement Group.
  */
 
-void prepareMinimumOutput(NSDictionary *results) {
+void prepareMinimumOutput(NSArray *results) {
     
     NSDictionary *eachItemFromResults = [[NSDictionary alloc] init];
     NSString *account = [[NSString alloc] init];
     NSString *service = [[NSString alloc] init];
     
-    fprintf(stdout, "\e[0;31mWarning: The names are truncated to max width of 35 charaters. Please use this dump as a reference, and use --find to get full details.\n\e[0;0m");
+    fprintf(stdout, "\e[0;31mWarning: The names are truncated to max width of 35 charaters. Please use this dump as a reference, and use --find to get full details.\n\e[0;30m");
     
     // Prettify the output.
     fprintf(stdout, "Account%28s | Service\n", "");
@@ -366,6 +380,20 @@ void prepareMinimumOutput(NSDictionary *results) {
 OSStatus dumpKeychain(NSString *action, NSString *find) {
     
     NSMutableDictionary* query = [[NSMutableDictionary alloc] init];
+    NSMutableArray* finalResult = [[NSMutableArray alloc] init];
+    
+    NSString *eachConstant = [[NSString alloc] init];
+    OSStatus status = 0;
+    
+    //NSArray *secClasses = @[(__bridge NSString *)kSecClassGenericPassword, (__bridge NSString *)kSecClassKey];
+    
+    NSArray *constants = @[(__bridge NSString *)kSecAttrAccessibleAfterFirstUnlock,
+                           (__bridge NSString *)kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
+                           (__bridge NSString *)kSecAttrAccessibleAlways,
+                           (__bridge NSString *)kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
+                           (__bridge NSString *)kSecAttrAccessibleAlwaysThisDeviceOnly,
+                           (__bridge NSString *)kSecAttrAccessibleWhenUnlocked,
+                           (__bridge NSString *)kSecAttrAccessibleWhenUnlockedThisDeviceOnly];
     
     /*
      Prepare a query to dump all the items.
@@ -377,29 +405,39 @@ OSStatus dumpKeychain(NSString *action, NSString *find) {
      TODO: I am just dealing with genp class of items, if a requirment occurs
      to other items like inetp, certs, I will extend it.
      */
-    [query setObject:(__bridge id)kSecClassGenericPassword forKey:(__bridge id)kSecClass];
-    [query setObject:(__bridge id)kSecMatchLimitAll forKey:(__bridge id)kSecMatchLimit];
-    [query setObject:(id)kCFBooleanTrue forKey:(__bridge id)kSecReturnAttributes];
-    [query setObject:(id)kCFBooleanTrue forKey:(__bridge id)kSecReturnData];
     
-    /*
-     On success, a dictionary of all the items are returned.
-     */
-    CFDictionaryRef results = nil;
-    
-    OSStatus status = SecItemCopyMatching((__bridge CFDictionaryRef)query, (CFTypeRef *)&results);
+    for (eachConstant in constants) {
+        
+        [query setObject:(__bridge id)kSecClassGenericPassword forKey:(__bridge id)kSecClass];
+        [query setObject:eachConstant forKey:(__bridge id<NSCopying>)(kSecAttrAccessible)];
+        [query setObject:(__bridge id)kSecMatchLimitAll forKey:(__bridge id)kSecMatchLimit];
+        [query setObject:(id)kCFBooleanTrue forKey:(__bridge id)kSecReturnAttributes];
+        [query setObject:(id)kCFBooleanTrue forKey:(__bridge id)kSecReturnData];
+        
+        /*
+         On success, a dictionary of all the items are returned.
+         */
+        CFTypeRef results = nil;
+        
+        status = SecItemCopyMatching((__bridge CFDictionaryRef)query, &results);
+        
+        if (status == errSecSuccess) {
+            
+            [finalResult addObjectsFromArray: (__bridge NSArray *)results];
+        }
+    }
     
     /*
      Handling the return status would be bit diffrent from other actions.
      On Success, I should print out the items instead of "Operation completed" message.
      On Failure, regular call to osstatusToHumanReadableString() is called.
      */
-    if (errSecSuccess == status) {
+    if ([finalResult count] != 0) {
         if ([action isEqualToString:@"min-dump"]) {
-            prepareMinimumOutput((__bridge NSMutableDictionary *)(results));
+            prepareMinimumOutput(finalResult);
         }
         else {
-            prepareJsonOutput((__bridge NSMutableDictionary *)(results), find);
+            prepareJsonOutput(finalResult, find);
         }
     }
     else {
@@ -557,7 +595,7 @@ int main(int argc, char *argv[]) {
          */
         
         if (![[NSString stringWithFormat:@"%s", argv[1]] isEqualToString:@"--action"]) {
-            fprintf(stderr, "\e[0;31mInvalid command passed as first argument. Please use --help to get usage information.\e[0;0m");
+            fprintf(stderr, "\e[0;31mInvalid command passed as first argument. Please use --help to get usage information.\e[0;30m");
             return EXIT_FAILURE;
         }
         
@@ -580,18 +618,19 @@ int main(int argc, char *argv[]) {
         NSString *agroup = [args stringForKey:@"-agroup"];
         
         // FOR TESTING PURPOSES.
-        /*
+        
         if ([action isEqualToString:@"test"]) {
-            additem();
+            //additem();
+            NSLog(@"%d", __IPHONE_OS_VERSION_MIN_REQUIRED);
             return EXIT_SUCCESS;
-        }*/
+        }
         
         /*
          '--action' can only be min-dump, dump, edit or delete.
          */
         
         if (![@[@"min-dump", @"dump", @"edit", @"delete"] containsObject:action]) {
-            fprintf(stderr, "\e[0;31mInvalid action passed. Please use --help to get usage information.\n\e[0;0m");
+            fprintf(stderr, "\e[0;31mInvalid action passed. Please use --help to get usage information.\n\e[0;30m");
             return EXIT_FAILURE;
         }
         
@@ -613,7 +652,7 @@ int main(int argc, char *argv[]) {
              */
             
             if ( (acct == nil) || (srvc == nil) || (data == nil) ) {
-                fprintf(stderr, "\e[0;31mEdit requires account, service and data. Please use --help to get usage information.\n\e[0;0m");
+                fprintf(stderr, "\e[0;31mEdit requires account, service and data. Please use --help to get usage information.\n\e[0;30m");
                 return EXIT_FAILURE;
             }
             
@@ -629,7 +668,7 @@ int main(int argc, char *argv[]) {
             NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:data options:NSDataBase64DecodingIgnoreUnknownCharacters];
             
             if (decodedData == nil) {
-                fprintf(stderr, "\e[0;31mData only accepts base64 strings. Please use --help to get usage information.\n\e[0;0m");
+                fprintf(stderr, "\e[0;31mData only accepts base64 strings. Please use --help to get usage information.\n\e[0;30m");
                 return EXIT_FAILURE;
             }
             
@@ -644,7 +683,7 @@ int main(int argc, char *argv[]) {
              */
             
             if ( (acct == nil) || (srvc == nil) ) {
-                fprintf(stderr, "\e[0;31mDelete requires account, service. Please use --help to get usage information.\n\e[0;0m");
+                fprintf(stderr, "\e[0;31mDelete requires account, service. Please use --help to get usage information.\n\e[0;30m");
                 return EXIT_FAILURE;
             }
             
