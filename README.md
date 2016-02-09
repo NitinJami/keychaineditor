@@ -31,7 +31,8 @@ find the exact path for the SDK installed. Follow the above steps to find the SD
 and update it with the appropriate SDK version for the *'isysroot'* flag.
 
 *Note:* This error should no longer occur. "ldid" is backed into "Makefile" now.
-4. Error Code -34018:<br/>
+
+Error Code -34018:<br/>
 The above error code is caused because you did not code sign the binary and did not provide
 the keychain access entitlements.<br/>
 **$ codesign -fs "YOUR_SELF_SIGNED_CERT" --entitlements entitlements.xml keychaineditor**
