@@ -17,6 +17,8 @@ KeychainEditor is a CLI to interact with iOS's [Keychain](https://developer.appl
 
 ## Usage
 
+** Attention: ** command line arguments have been changed for simplicity.
+
 ```
 USAGE: keychaineditor [commands]
 Commands Description
@@ -27,13 +29,30 @@ Commands Description
 NOTES:
  * Account and Service names are used to uniquely identify a item. An optional AccessGroup can also be passed to identify the item.
  * If there is no Account name pass an empty string.
- * Search is from the following group {Account, Service, AccessGroup, Protection}
+ * Search is from the following group {Account, Service, AccessGroup, Protection} and is case in-sensitive.
+EXAMPLES:
+ * To Dump entire keychain: $ keychaineditor
+ * Limit dump by searching: $ keychaineditor -f "test"
+ * Edit a keychain item:    $ keychaineditor -e --account "TestAccount" --service "TestService" --data "TestData"
+ * Delete a keychain item:  $ keychaineditor -d --account "TestAccount" --service "TestService"
 ```
+
+## Installation
+
+Recommended approach is to install using the `dpkg` command. SCP the .deb file into the device and run the following command:
+
+`dpkg -i keychaineditor.deb`
+
+To Un-install:
+
+`dpkg -r com.nitin.keychaineditor`
+
+*Note:* For manual installation, iOS devices do not come with Swift Runtime dylibs. You need to manually copy them to the device with the binary. The required frameworks are included in the repository.
 
 ## Build Notes
 
-1. To build the tool, Run 'make' in the current directory.
+To build the tool, Run 'make' in the current directory. The final outcome will be a `.deb` package.
 
-Note: You should have xcode command line tools installed for the toolchain.
+*Note:* You should have xcode command line tools installed for the toolchain.
 
-Note: You should also have `ldid` and `dpkg-deb`.
+*Note:* You should also have `ldid` and `dpkg-deb` (can be instaled via Homebrew).
