@@ -1,5 +1,13 @@
 # keychaineditor
-KeychainEditor is a CLI to interact with iOS's [Keychain](https://developer.apple.com/library/ios/documentation/Security/Conceptual/keychainServConcepts/01introduction/introduction.html) on a jailbroken iDevice. Keychain is a secure storage provided by the iOS to save client-side secrets/certificates onto the device. KeychainEditor is useful to dump/edit/delete a keychain item. The tool will greatly help pentesters and security researches alike who would want to poke at application's keychain usage during iOS APT (Application Penetration Test). It should be noted that the tool currently supports Generic Passwords (Genp) only. Support for Internet Passwords and Certificates will soon be added!
+KeychainEditor is a CLI to interact with iOS's [Keychain](https://developer.apple.com/library/ios/documentation/Security/Conceptual/keychainServConcepts/01introduction/introduction.html) on a jailbroken iDevice. Keychain is a secure storage provided by the iOS to save client-side secrets/certificates onto the device. KeychainEditor is useful to dump/edit/delete a keychain item. The tool will greatly help pentesters and security researches alike who would want to poke at application's keychain usage during iOS APT (Application Penetration Test). It should be noted that the tool currently supports Generic Passwords (Genp) only and can decode the new constrainsts applied on an item.
+
+## Talk
+
+For more information on the journey in decoding the `SecAccessControl` flags.
+
+Slides: [bsides_ROC_2016-04-23.pdf](https://github.com/NitinJami/slides/blob/master/bsides_ROC_2016-04-23.pdf)
+
+Video: [Exploring SecAccessControl Obj in iOS 9 Keychain](https://www.youtube.com/watch?v=JLwS-QZ2kWU)
 
 ## Features
 1. Support for iOS8+ and the new changes in Keychain. Completely re-written in Swift.
