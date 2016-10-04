@@ -17,7 +17,7 @@ KeychainEditor is a CLI to interact with iOS's [Keychain](https://developer.appl
 
 ## Usage
 
-** Attention: ** command line arguments have been changed for simplicity.
+**Attention:** command line arguments have been changed for simplicity.
 
 ```
 USAGE: keychaineditor [commands]
