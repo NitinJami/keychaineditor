@@ -64,3 +64,5 @@ To build the tool, Run 'make' in the current directory. The final outcome will b
 *Note:* You should have xcode command line tools installed for the toolchain.
 
 *Note:* You should also have `ldid` and `dpkg-deb` (can be instaled via Homebrew).
+
+The tool is currently only built for 64-bit architectures. However, it is very easy to build for 32-bit arch as well. Just modify the `ARCH_FLAGS` and `TARGET` in Makefile with corresponding 32-bit arch values.
