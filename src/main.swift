@@ -10,7 +10,12 @@ func printUsage() {
     print("NOTES:")
     print(" * Account and Service names are used to uniquely identify a item. An optional AccessGroup can also be passed to identify the item.")
     print(" * If there is no Account name pass an empty string.")
-    print(" * Search is from the following group {Account, Service, AccessGroup, Protection}")
+    print(" * Search is from the following group {Account, Service, AccessGroup, Protection} and is case in-sensitive.")
+    print("EXAMPLES:")
+    print(" * To Dump entire keychain: $ keychaineditor")
+    print(" * Limit dump by searching: $ keychaineditor -f 'test'")
+    print(" * Edit a keychain item:    $ keychaineditor -e --account 'TestAccount' --service 'TestService' --data 'TestData'")
+    print(" * Delete a keychain item:  $ keychaineditor -d --account 'TestAccount' --service 'TestService'")
     exit(EXIT_FAILURE)
 }
 
