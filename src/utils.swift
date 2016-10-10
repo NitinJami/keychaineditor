@@ -137,7 +137,11 @@ func search(for query: String, in items: [Dictionary<String, String>]) -> [Dicti
 func convertToJSON(for items: [Dictionary<String, String>]) -> String {
     do {
         let jsonData = try JSONSerialization.data(withJSONObject: items, options: JSONSerialization.WritingOptions.prettyPrinted)
-        return String(data: jsonData, encoding: String.Encoding.utf8)!
+        guard let jsonString = String(data: jsonData, encoding: String.Encoding.utf8) else {
+            NSLog("convertToJSON() -> Error converting keychain dump to JSON.")
+            exit(EXIT_FAILURE)
+        }
+        return jsonString
     } catch let error as NSError {
         return "Error: \(error.domain)"
     }

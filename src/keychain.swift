@@ -84,7 +84,10 @@ func updateKeychainItem(at secClass: String = kSecClassGenericPassword as String
                 data: String,
                 agroup: String? = nil) -> OSStatus {
 
-    let updatedData: Data = data.data(using: String.Encoding.utf8)!
+    guard let updatedData = data.data(using: String.Encoding.utf8) else {
+        NSLog("UpdateKeychainItem() -> Error while unwrapping user-supplied data.")
+        exit(EXIT_FAILURE)
+    }
 
     var query = [
         kSecClass as String         :   secClass,
