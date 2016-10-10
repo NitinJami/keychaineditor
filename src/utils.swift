@@ -30,9 +30,15 @@ func decodeSecAccessControl(sacObj: Any?) -> String {
     var finalDecodedValue: String = String()
 
     // If there is no SecAccessControl object you will get a nil.
-    // usually, happens when device does not support it or An item is not addedd with SecAccessControl.
+    // usually, happens when device does not support it or An item is not added
+    // with SecAccessControl.
     if let unwrappedSACObj = sacObj {
-        var operations = getOperations(unwrappedSACObj as! SecAccessControl).takeUnretainedValue() as! Dictionary<String, Any>
+      // iOS 8 behaves a bit differently. The SAC object is returned even though
+      // the device does not support it. SAC contains the AccessibilityConstant.
+      // Guess it has been refined in iOS9, where SAC only contains any value
+      // if the device supports it.
+      // Secondary check to make sure that we have something in SAC.
+        if let operations = getOperations(unwrappedSACObj as! SecAccessControl)?.takeUnretainedValue() as? Dictionary<String, Any> {
             for eachOperation in operations.keys {
                 switch eachOperation {
                 case "dacl": return "Default ACL"
@@ -52,10 +58,10 @@ func decodeSecAccessControl(sacObj: Any?) -> String {
                     let constraints = operations["od"] as! Dictionary<String, AnyObject>
                     for eachConstraint in constraints.keys {
                         switch eachConstraint {
-                          case "cpo": finalDecodedValue += " UserPresence "
-                          case "cup": finalDecodedValue += " DevicePasscode "
-                          case "pkofn": finalDecodedValue += (constraints["pkofn"] as! Int == 1 ? " Or " : " And ")
-                          case "cbio": finalDecodedValue += ((constraints["cbio"]?.count)! == 1 ? " TouchIDAny " : " TouchIDCurrentSet ")
+                        case "cpo": finalDecodedValue += " UserPresence "
+                        case "cup": finalDecodedValue += " DevicePasscode "
+                        case "pkofn": finalDecodedValue += (constraints["pkofn"] as! Int == 1 ? " Or " : " And ")
+                        case "cbio": finalDecodedValue += ((constraints["cbio"]?.count)! == 1 ? " TouchIDAny " : " TouchIDCurrentSet ")
                         default: break
                         }
                     }
@@ -63,9 +69,10 @@ func decodeSecAccessControl(sacObj: Any?) -> String {
                 default: break
                 }
             }
-        return finalDecodedValue
+            return finalDecodedValue
+        }
     }
-    return "SecAccessControl Not Applicable"
+    return "Not Applicable"
 }
 
 func determineTypeAndReturnString(value: Any?) -> String {
@@ -111,7 +118,7 @@ func canonicalizeTypesInReturnedDicts(items: [Dictionary<String, Any>]) -> [Dict
         dict["Modification Time"] = determineTypeAndReturnString(value: eachDict[kSecAttrModificationDate as String])
         dict["Protection"] = determineTypeAndReturnString(value: eachDict[kSecAttrAccessible as String])
         dict["Data"] = determineTypeAndReturnString(value: eachDict[kSecValueData as String])
-        dict["User Presence"] = decodeSecAccessControl(sacObj: eachDict[kSecAttrAccessControl as String])
+        dict["AccessControl"] = decodeSecAccessControl(sacObj: eachDict[kSecAttrAccessControl as String])
 
         arrayOfDict.append(dict)
     }
