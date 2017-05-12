@@ -82,7 +82,7 @@ func determineTypeAndReturnString(value: Any?) -> String {
             if let unwrappedString = String(data: (unwrappedValue as! Data), encoding: String.Encoding.utf8) {
                 return unwrappedString
             } else {
-                return "[Warning] Encoding Shenanigans"
+                return (unwrappedValue as! Data).base64EncodedString()
             }
         } else if unwrappedValue is NSDate {
             let dateFMT = DateFormatter()
