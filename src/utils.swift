@@ -82,7 +82,7 @@ func determineTypeAndReturnString(value: Any?) -> String {
             if let unwrappedString = String(data: (unwrappedValue as! Data), encoding: String.Encoding.utf8) {
                 return unwrappedString
             } else {
-                return "[Warning] Encoding Shenanigans"
+                return "[Warning] Encoding Shenanigans. Cannot Decode Data. Here is the Hex String: " + (unwrappedValue as! Data).map { String(format: "%02x", $0) }.joined()
             }
         } else if unwrappedValue is NSDate {
             let dateFMT = DateFormatter()
@@ -129,15 +129,13 @@ func canonicalizeTypesInReturnedDicts(items: [Dictionary<String, Any>]) -> [Dict
 func search(for query: String, in items: [Dictionary<String, String>]) -> [Dictionary<String, String>] {
 
     var finalItems = [Dictionary<String, String>]()
-
+    let predicateString = "Account CONTAINS[cd] %@ OR Service CONTAINS[cd] %@ OR %K CONTAINS[cd] %@ OR Protection CONTAINS[cd] %@"
     for eachItem in items {
-        let predicate = NSPredicate(format: "Account CONTAINS[cd] %@ OR Service CONTAINS[cd] %@ OR EntitlementGroup CONTAINS[cd] %@ OR Protection CONTAINS[cd] %@", query, query, query, query)
-
+        let predicate = NSPredicate(format: predicateString, query, query, "Access Group", query, query)
         if predicate.evaluate(with: eachItem) {
             finalItems.append(eachItem)
         }
     }
-
     return finalItems
 }
 
