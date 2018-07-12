@@ -29,7 +29,7 @@ LD_FLAGS  =  -syslibroot $(SDK_PATH) \
 
 SOURCE = $(notdir $(wildcard src/*.swift))
 
-keychaineditor: compile link sign package removegarbage
+keychaineditor: compile link sign copylibs package removegarbage
 
 compile: decodeSecAccessControl.c $(SOURCE) main.swift
 
@@ -54,6 +54,10 @@ link:
 sign:
 	ldid -Ssrc/entitlements.xml keychaineditor/usr/local/bin/keychaineditor
 
+FILES = $(addprefix $(TOOLCHAIN_PATH)/,libswiftCore.dylib libswiftCoreFoundation.dylib libswiftCoreGraphics.dylib libswiftDarwin.dylib libswiftDispatch.dylib libswiftFoundation.dylib libswiftObjectiveC.dylib libswiftSwiftOnoneSupport.dylib libswiftos.dylib)
+copylibs:
+	cp $(FILES) keychaineditor/usr/lib/
+
 package:
 	dpkg-deb -Zgzip -b keychaineditor
 
@@ -62,4 +66,5 @@ removegarbage:
 
 clean:
 	rm -f keychaineditor/usr/local/bin/keychaineditor
+	rm -f keychaineditor/usr/lib/*
 	rm -f keychaineditor.deb
