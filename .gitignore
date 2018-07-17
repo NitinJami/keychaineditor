@@ -1,1 +1,3 @@
 .DS_Store
+keychaineditor/usr/local/bin/keychaineditor
+*.dylib
