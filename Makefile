@@ -56,7 +56,7 @@ sign:
 
 FILES = $(addprefix $(TOOLCHAIN_PATH)/,libswiftCore.dylib libswiftCoreFoundation.dylib libswiftCoreGraphics.dylib libswiftDarwin.dylib libswiftDispatch.dylib libswiftFoundation.dylib libswiftObjectiveC.dylib libswiftSwiftOnoneSupport.dylib libswiftos.dylib)
 copylibs:
-	cp $(FILES) keychaineditor/usr/lib/
+	cp $(FILES) keychaineditor/usr/local/lib/
 
 package:
 	dpkg-deb -Zgzip -b keychaineditor
