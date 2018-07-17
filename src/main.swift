@@ -56,7 +56,7 @@ guard CommandLine.arguments.count >= 2 else {
 }
 
 switch CommandLine.arguments[1] {
-case "-v": print("KeychainEditor Version = 2.1")
+case "-v": print("KeychainEditor Version = 2.2")
 case "-f": handleSearch(args: UserDefaults.standard)
 case "-e": handleEdit(args: UserDefaults.standard)
 case "-d": handleDelete(args: UserDefaults.standard)
