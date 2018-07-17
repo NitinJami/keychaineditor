@@ -27,7 +27,7 @@ func addKeychainItem() -> OSStatus {
 
         status = SecItemAdd(query as CFDictionary, nil)
     } else {
-        print("[addItem::SecAccessControl] - \(error?.takeUnretainedValue())")
+        print("[addItem::SecAccessControl] - " + String(describing: error?.takeUnretainedValue()))
     }
     return status
 }
@@ -49,13 +49,13 @@ func dumpKeychainItems() -> [Dictionary<String, String>] {
 
     for eachKSecClass in secClasses {
         for eachConstant in accessiblityConstants {
-            let query = [
-                kSecClass as String             :   eachKSecClass,
-                kSecAttrAccessible as String    :   eachConstant,
-                kSecMatchLimit as String        :   kSecMatchLimitAll as String,
-                kSecReturnAttributes as String  :   kCFBooleanTrue as Bool,
-                kSecReturnData as String        :   kCFBooleanTrue as Bool
-                ] as [String : Any]
+            let query: [CFString: Any] = [
+                kSecClass             :   eachKSecClass,
+                kSecAttrAccessible    :   eachConstant,
+                kSecMatchLimit        :   kSecMatchLimitAll,
+                kSecReturnAttributes  :   kCFBooleanTrue,
+                kSecReturnData        :   kCFBooleanTrue
+                ]
 
             status = SecItemCopyMatching(query as CFDictionary, &returnedItemsInGenericArray)
 
